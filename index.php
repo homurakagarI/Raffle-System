@@ -83,6 +83,12 @@ $last_winner = $_SESSION['last_winner'] ?? null;
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
+    <!-- Theme Toggle -->
+    <div class="theme-toggle">
+        <button id="lightTheme" class="active" title="Light Mode">☀️</button>
+        <button id="darkTheme" title="Dark Mode">🌙</button>
+    </div>
+
     <div class="container">
         <header>
             <h1>🎉 Raffle System</h1>
@@ -230,6 +236,31 @@ $last_winner = $_SESSION['last_winner'] ?? null;
     </div>
 
     <script>
+        // Theme functionality
+        const lightThemeBtn = document.getElementById('lightTheme');
+        const darkThemeBtn = document.getElementById('darkTheme');
+        const body = document.body;
+
+        // Load saved theme or default to light
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        setTheme(savedTheme);
+
+        lightThemeBtn.addEventListener('click', () => setTheme('light'));
+        darkThemeBtn.addEventListener('click', () => setTheme('dark'));
+
+        function setTheme(theme) {
+            if (theme === 'dark') {
+                body.setAttribute('data-theme', 'dark');
+                darkThemeBtn.classList.add('active');
+                lightThemeBtn.classList.remove('active');
+            } else {
+                body.removeAttribute('data-theme');
+                lightThemeBtn.classList.add('active');
+                darkThemeBtn.classList.remove('active');
+            }
+            localStorage.setItem('theme', theme);
+        }
+
         // Participants data for the wheel
         const participants = <?php echo json_encode($participants); ?>;
         let selectedWinner = null;
@@ -287,7 +318,12 @@ $last_winner = $_SESSION['last_winner'] ?? null;
                 const segment = document.createElement('div');
                 segment.className = 'wheel-segment';
                 segment.style.transform = `rotate(${index * segmentAngle}deg)`;
-                segment.style.background = `hsl(${(index * 360) / participants.length}, 70%, 60%)`;
+                
+                // Enhanced color palette for better visibility
+                const hue = (index * 360) / participants.length;
+                const saturation = 70 + (index % 3) * 10; // Vary saturation
+                const lightness = 45 + (index % 4) * 5;   // Vary lightness
+                segment.style.background = `hsl(${hue}, ${saturation}%, ${lightness}%)`;
                 
                 const segmentText = document.createElement('div');
                 segmentText.className = 'segment-text';
@@ -306,11 +342,11 @@ $last_winner = $_SESSION['last_winner'] ?? null;
             
             // Calculate the angle to land on the winner
             const winnerAngle = winnerIndex * segmentAngle;
-            const extraSpins = 5; // Number of full rotations
+            const extraSpins = 5 + Math.random() * 3; // Random extra spins for more excitement
             const finalAngle = (extraSpins * 360) + (360 - winnerAngle) + (segmentAngle / 2);
             
-            // Apply the spinning animation
-            wheel.style.transition = 'transform 4s cubic-bezier(0.23, 1, 0.32, 1)';
+            // Apply the spinning animation with enhanced easing
+            wheel.style.transition = 'transform 4.5s cubic-bezier(0.23, 1, 0.32, 1)';
             wheel.style.transform = `rotate(${finalAngle}deg)`;
             
             // Set the selected winner
@@ -319,7 +355,7 @@ $last_winner = $_SESSION['last_winner'] ?? null;
             // Show result after animation
             setTimeout(() => {
                 showWinnerResult();
-            }, 4200);
+            }, 4700);
         }
 
         function showWinnerResult() {
@@ -333,8 +369,8 @@ $last_winner = $_SESSION['last_winner'] ?? null;
             
             wheelResult.style.display = 'block';
             
-            // Add confetti effect
-            createConfetti();
+            // Add enhanced confetti effect
+            createEnhancedConfetti();
         }
 
         function confirmWinner() {
@@ -355,22 +391,24 @@ $last_winner = $_SESSION['last_winner'] ?? null;
             selectedWinner = null;
         }
 
-        function createConfetti() {
-            const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#f9ca24', '#f0932b', '#eb4d4b', '#6c5ce7'];
+        function createEnhancedConfetti() {
+            const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#f9ca24', '#f0932b', '#eb4d4b', '#6c5ce7', '#a29bfe', '#fd79a8', '#00b894'];
             
-            for (let i = 0; i < 50; i++) {
+            for (let i = 0; i < 100; i++) {
                 setTimeout(() => {
                     const confetti = document.createElement('div');
                     confetti.className = 'confetti';
                     confetti.style.left = Math.random() * 100 + '%';
                     confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
                     confetti.style.animationDelay = Math.random() * 3 + 's';
+                    confetti.style.width = (Math.random() * 10 + 5) + 'px';
+                    confetti.style.height = confetti.style.width;
                     document.body.appendChild(confetti);
                     
                     setTimeout(() => {
                         confetti.remove();
-                    }, 3000);
-                }, i * 50);
+                    }, 4000);
+                }, i * 30);
             }
         }
     </script>
