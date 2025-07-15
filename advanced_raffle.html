@@ -765,8 +765,11 @@
                 </div>
                 
                 <div class="form-group">
-                    <label for="participantEmail">Email:</label>
-                    <input type="email" id="participantEmail" placeholder="Enter participant email" autocomplete="off">
+                    <label style="display: flex; align-items: center; gap: 8px; margin-bottom: 10px;">
+                        <input type="checkbox" id="includeEmail" onchange="toggleEmailField()" style="margin: 0;">
+                        <span>Include Email Address</span>
+                    </label>
+                    <input type="email" id="participantEmail" placeholder="Enter participant email (optional)" autocomplete="off" style="display: none;">
                 </div>
                 
                 <div style="display: flex; gap: 10px;">
@@ -1149,7 +1152,9 @@
             
             addParticipant() {
                 const name = document.getElementById('participantName').value.trim();
-                const email = document.getElementById('participantEmail').value.trim();
+                const emailInput = document.getElementById('participantEmail');
+                const includeEmail = document.getElementById('includeEmail').checked;
+                const email = includeEmail ? emailInput.value.trim() : '';
                 
                 if (!name) {
                     this.showNotification('Please enter a name!', 'error');
@@ -1157,30 +1162,33 @@
                     return;
                 }
                 
-                if (!email) {
-                    this.showNotification('Please enter an email!', 'error');
-                    document.getElementById('participantEmail').focus();
-                    return;
-                }
-                
-                // Validate email format
-                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-                if (!emailRegex.test(email)) {
-                    this.showNotification('Please enter a valid email address!', 'error');
-                    document.getElementById('participantEmail').focus();
-                    return;
-                }
-                
-                // Check for duplicate emails
-                if (this.participants.some(p => p.email.toLowerCase() === email.toLowerCase())) {
-                    this.showNotification('This email is already registered!', 'error');
-                    document.getElementById('participantEmail').focus();
-                    return;
+                // Only validate email if user chose to include it
+                if (includeEmail) {
+                    if (!email) {
+                        this.showNotification('Please enter an email!', 'error');
+                        emailInput.focus();
+                        return;
+                    }
+                    
+                    // Validate email format
+                    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                    if (!emailRegex.test(email)) {
+                        this.showNotification('Please enter a valid email address!', 'error');
+                        emailInput.focus();
+                        return;
+                    }
+                    
+                    // Check for duplicate emails (only if email is provided)
+                    if (this.participants.some(p => p.email && p.email.toLowerCase() === email.toLowerCase())) {
+                        this.showNotification('This email is already registered!', 'error');
+                        emailInput.focus();
+                        return;
+                    }
                 }
                 
                 this.participants.push({
                     name: name,
-                    email: email,
+                    email: email || null, // Store null if no email provided
                     id: Date.now()
                 });
                 
@@ -1194,7 +1202,9 @@
                 
                 // Clear inputs
                 document.getElementById('participantName').value = '';
-                document.getElementById('participantEmail').value = '';
+                if (includeEmail) {
+                    emailInput.value = '';
+                }
                 document.getElementById('participantName').focus();
                 
                 this.showNotification(`✅ Added ${name} successfully!`, 'success');
@@ -1276,7 +1286,7 @@
                         <div class="participant-item">
                             <div>
                                 <strong>${p.name}</strong><br>
-                                <small style="opacity: 0.8;">${p.email}</small>
+                                ${p.email ? `<small style="opacity: 0.8;">${p.email}</small>` : '<small style="opacity: 0.6; font-style: italic;">No email provided</small>'}
                             </div>
                             <button class="btn btn-danger" style="padding: 5px 10px; font-size: 0.8rem;" 
                                     onclick="wheel.removeParticipant(${p.id})" title="Remove ${p.name}">×</button>
@@ -1475,7 +1485,7 @@
                             <div class="winner-announcement">
                                 🏆 FINAL WINNER! 🏆<br>
                                 <strong>${winner.name}</strong><br>
-                                <small>${winner.email}</small><br>
+                                ${winner.email ? `<small>${winner.email}</small><br>` : ''}
                                 <small style="opacity: 0.8;">Survived ${this.eliminationRound} rounds!</small>
                             </div>
                         `);
@@ -1516,7 +1526,7 @@
                         <div class="winner-announcement">
                             🏆 WINNER! 🏆<br>
                             <strong>${winner.name}</strong><br>
-                            <small>${winner.email}</small>
+                            ${winner.email ? `<small>${winner.email}</small>` : ''}
                         </div>
                     `);
                     this.createConfetti();
@@ -1653,7 +1663,7 @@
                     <div class="winner-announcement">
                         🎰 JACKPOT! 🎰<br>
                         <strong>${winner.name}</strong><br>
-                        <small>${winner.email}</small>
+                        ${winner.email ? `<small>${winner.email}</small>` : ''}
                     </div>
                 `;
                 
@@ -1733,7 +1743,7 @@
                     <div class="winner-announcement">
                         🔮 The Crystal Ball Has Spoken! 🔮<br>
                         <strong>${winner.name}</strong><br>
-                        <small>${winner.email}</small>
+                        ${winner.email ? `<small>${winner.email}</small>` : ''}
                     </div>
                 `;
                 
@@ -1822,7 +1832,7 @@
                     <div class="winner-announcement">
                         🎴 The Cards Have Decided! 🎴<br>
                         <strong>${winner.name}</strong><br>
-                        <small>${winner.email}</small>
+                        ${winner.email ? `<small>${winner.email}</small>` : ''}
                     </div>
                 `;
                 
@@ -2036,6 +2046,19 @@
                 toggle.textContent = '🔇 Sound Off';
                 toggle.classList.add('muted');
                 wheel.showNotification('🔇 Sound effects disabled', 'info');
+            }
+        }
+        
+        function toggleEmailField() {
+            const emailInput = document.getElementById('participantEmail');
+            const includeEmail = document.getElementById('includeEmail').checked;
+            
+            if (includeEmail) {
+                emailInput.style.display = 'block';
+                emailInput.placeholder = 'Enter participant email';
+            } else {
+                emailInput.style.display = 'none';
+                emailInput.value = ''; // Clear email field when hidden
             }
         }
         
