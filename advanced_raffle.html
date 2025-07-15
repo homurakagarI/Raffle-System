@@ -1,0 +1,2075 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎉 Advanced Raffle Wheel System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: white;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+            display: grid;
+            grid-template-columns: 350px 1fr;
+            gap: 30px;
+            min-height: 100vh;
+        }
+
+        .sidebar {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            height: fit-content;
+        }
+
+        .main-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 30px;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        h2 {
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            color: #fff;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+
+        input[type="text"], input[type="email"] {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            background: rgba(255, 255, 255, 0.9);
+            color: #333;
+        }
+
+        input:focus {
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.3);
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 5px;
+        }
+
+        .btn-primary {
+            background: #27ae60;
+            color: white;
+        }
+
+        .btn-danger {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .btn-warning {
+            background: #f39c12;
+            color: white;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .participants-list {
+            max-height: 300px;
+            overflow-y: auto;
+            background: rgba(0,0,0,0.2);
+            border-radius: 10px;
+            padding: 10px;
+        }
+
+        .participant-item {
+            background: rgba(255,255,255,0.1);
+            margin: 5px 0;
+            padding: 10px;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .wheel-container {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+
+        #wheelCanvas {
+            border-radius: 50%;
+            box-shadow: 0 0 50px rgba(0,0,0,0.5);
+            background: white;
+        }
+
+        .controls {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .speed-selector {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .speed-btn {
+            padding: 8px 16px;
+            border: 2px solid rgba(255,255,255,0.3);
+            background: rgba(255,255,255,0.1);
+            color: white;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .speed-btn.active {
+            background: rgba(255,255,255,0.3);
+            border-color: white;
+        }
+
+        .spin-btn {
+            font-size: 1.2rem;
+            padding: 15px 30px;
+            background: linear-gradient(45deg, #ff6b6b, #ff8e8e);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(255,107,107,0.4);
+        }
+
+        .spin-btn:hover:not(:disabled) {
+            transform: scale(1.05);
+            box-shadow: 0 6px 20px rgba(255,107,107,0.6);
+        }
+
+        .result {
+            text-align: center;
+            padding: 20px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 15px;
+            margin-top: 20px;
+            min-height: 100px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .winner-announcement {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #f1c40f;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            
+            .sidebar {
+                order: 2;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+            
+            #wheelCanvas {
+                width: 300px !important;
+                height: 300px !important;
+            }
+        }
+
+        .confetti {
+            position: fixed;
+            width: 10px;
+            height: 10px;
+            background: #f1c40f;
+            animation: confetti-fall 3s linear infinite;
+            pointer-events: none;
+            z-index: 1000;
+        }
+
+        @keyframes confetti-fall {
+            to {
+                transform: translateY(100vh) rotate(360deg);
+            }
+        }
+
+        /* Game Selection Styles */
+        .game-selector {
+            margin-top: 20px;
+            padding: 20px;
+            background: rgba(0,0,0,0.2);
+            border-radius: 15px;
+        }
+
+        .game-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .game-btn {
+            padding: 12px 8px;
+            font-size: 0.9rem;
+        }
+
+        /* Mode Selection Styles */
+        .mode-selector {
+            margin-top: 15px;
+            padding: 15px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 10px;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .mode-toggle {
+            display: flex;
+            background: rgba(0,0,0,0.3);
+            border-radius: 25px;
+            padding: 3px;
+            margin-top: 10px;
+        }
+
+        .mode-option {
+            flex: 1;
+            padding: 8px 16px;
+            text-align: center;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        .mode-option.active {
+            background: linear-gradient(45deg, #27ae60, #2ecc71);
+            color: white;
+            box-shadow: 0 2px 10px rgba(39, 174, 96, 0.4);
+        }
+
+        .mode-option:not(.active) {
+            color: rgba(255,255,255,0.7);
+        }
+
+        .mode-option:not(.active):hover {
+            background: rgba(255,255,255,0.1);
+            color: white;
+        }
+
+        /* User Guide Styles */
+        .user-guide {
+            background: rgba(255,255,255,0.1);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-left: 4px solid #3498db;
+        }
+
+        .guide-step {
+            display: flex;
+            align-items: center;
+            margin: 10px 0;
+            font-size: 0.9rem;
+        }
+
+        .step-number {
+            background: #3498db;
+            color: white;
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 10px;
+            font-weight: bold;
+            font-size: 0.8rem;
+        }
+
+        /* Elimination Mode Styles */
+        .elimination-info {
+            background: rgba(231, 76, 60, 0.2);
+            border: 1px solid rgba(231, 76, 60, 0.3);
+            border-radius: 10px;
+            padding: 15px;
+            margin: 15px 0;
+            text-align: center;
+        }
+
+        .elimination-counter {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #e74c3c;
+            margin: 10px 0;
+        }
+
+        /* Sound Control Styles */
+        .sound-controls {
+            margin-top: 15px;
+            text-align: center;
+        }
+
+        .sound-toggle {
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        .sound-toggle:hover {
+            background: rgba(255,255,255,0.2);
+        }
+
+        .sound-toggle.muted {
+            background: rgba(231, 76, 60, 0.3);
+            border-color: #e74c3c;
+        }
+
+        /* Tooltips */
+        .tooltip {
+            position: relative;
+            cursor: help;
+        }
+
+        .tooltip::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            bottom: 125%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0,0,0,0.8);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+            z-index: 1000;
+        }
+
+        .tooltip:hover::after {
+            opacity: 1;
+        }
+
+        .game-area {
+            width: 100%;
+            text-align: center;
+        }
+
+        .game-area h2 {
+            margin-bottom: 30px;
+            font-size: 2rem;
+        }
+
+        /* Slot Machine Styles */
+        .slot-machine {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 30px;
+            margin: 40px 0;
+        }
+
+        .slot-reels {
+            display: flex;
+            gap: 10px;
+            background: linear-gradient(145deg, #2c3e50, #34495e);
+            padding: 30px 20px;
+            border-radius: 20px;
+            border: 5px solid #f39c12;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        .slot-reel {
+            width: 120px;
+            height: 200px;
+            background: white;
+            border: 3px solid #2c3e50;
+            border-radius: 10px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .reel-items {
+            transition: transform 3s cubic-bezier(0.23, 1, 0.32, 1);
+            transform: translateY(0);
+        }
+
+        .reel-item {
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: #2c3e50;
+            border-bottom: 1px solid #ecf0f1;
+            background: linear-gradient(145deg, #ffffff, #f8f9fa);
+        }
+
+        .slot-lever {
+            width: 30px;
+            height: 150px;
+            background: linear-gradient(145deg, #e74c3c, #c0392b);
+            border-radius: 15px;
+            position: relative;
+            cursor: pointer;
+            box-shadow: 0 5px 15px rgba(231, 76, 60, 0.3);
+            transition: transform 0.3s ease;
+        }
+
+        .slot-lever:hover {
+            transform: scale(1.05);
+        }
+
+        .slot-lever:active {
+            transform: scale(0.95) translateY(10px);
+        }
+
+        .lever-handle {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(145deg, #f39c12, #e67e22);
+            border-radius: 50%;
+            position: absolute;
+            top: 10px;
+            left: -5px;
+            box-shadow: 0 3px 10px rgba(243, 156, 18, 0.4);
+        }
+
+        /* Lottery Balls Styles */
+        .lottery-container {
+            margin: 40px 0;
+        }
+
+        .lottery-machine {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 30px;
+        }
+
+        .lottery-balls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            justify-content: center;
+            max-width: 500px;
+            padding: 30px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 20px;
+            border: 3px solid rgba(255,255,255,0.2);
+        }
+
+        .lottery-ball {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1rem;
+            color: white;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+            cursor: pointer;
+            transition: all 0.5s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .lottery-ball:hover {
+            transform: scale(1.1);
+        }
+
+        .lottery-tube {
+            width: 200px;
+            height: 100px;
+            background: linear-gradient(145deg, #3498db, #2980b9);
+            border-radius: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 5px solid rgba(255,255,255,0.2);
+            box-shadow: 0 10px 30px rgba(52, 152, 219, 0.3);
+        }
+
+        .selected-ball {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.9rem;
+            color: white;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+            box-shadow: 0 0 20px rgba(255,255,255,0.5);
+        }
+
+        @keyframes ballGlow {
+            0%, 100% { box-shadow: 0 0 20px rgba(255,255,255,0.5); }
+            50% { box-shadow: 0 0 40px rgba(255,255,255,0.8); }
+        }
+
+        /* Card Draw Styles */
+        .card-table {
+            margin: 40px 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 50px;
+            flex-wrap: wrap;
+        }
+
+        .card-deck {
+            position: relative;
+            width: 300px;
+            height: 200px;
+        }
+
+        .playing-card {
+            width: 80px;
+            height: 120px;
+            position: absolute;
+            transition: all 1s ease;
+            transform-style: preserve-3d;
+            cursor: pointer;
+            border-radius: 8px;
+            background: linear-gradient(145deg, #e74c3c, #c0392b);
+            border: 2px solid #8b0000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 0.8rem;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .playing-card:hover {
+            transform: translateY(-10px) scale(1.05);
+        }
+
+        .selected-card-area {
+            width: 150px;
+            height: 180px;
+            border: 3px dashed rgba(255,255,255,0.5);
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255,255,255,0.1);
+        }
+
+        .selected-card {
+            width: 120px;
+            height: 160px;
+            display: none;
+            background: white;
+            border-radius: 10px;
+            border: 2px solid #2c3e50;
+            color: #2c3e50;
+            font-weight: bold;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+
+        /* Back to games button */
+        .back-btn {
+            margin: 10px;
+            padding: 8px 16px;
+            background: rgba(255,255,255,0.2);
+            border: 1px solid rgba(255,255,255,0.3);
+            color: white;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .back-btn:hover {
+            background: rgba(255,255,255,0.3);
+        }
+
+        @media (max-width: 768px) {
+            .slot-machine {
+                flex-direction: column;
+                gap: 20px;
+            }
+            
+            .slot-reels {
+                padding: 20px 15px;
+            }
+            
+            .slot-reel {
+                width: 80px;
+                height: 150px;
+            }
+            
+            .lottery-balls {
+                padding: 20px;
+                gap: 10px;
+            }
+            
+            .lottery-ball {
+                width: 50px;
+                height: 50px;
+                font-size: 0.8rem;
+            }
+            
+            .card-deck {
+                width: 250px;
+                height: 150px;
+            }
+            
+            .playing-card {
+                width: 60px;
+                height: 90px;
+                font-size: 0.7rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="sidebar">
+            <!-- User Guide -->
+            <div class="user-guide">
+                <h3 style="margin: 0 0 15px 0; color: #3498db;">📖 Quick Guide</h3>
+                <div class="guide-step">
+                    <div class="step-number">1</div>
+                    <span>Choose game type & mode</span>
+                </div>
+                <div class="guide-step">
+                    <div class="step-number">2</div>
+                    <span>Add participants with name & email</span>
+                </div>
+                <div class="guide-step">
+                    <div class="step-number">3</div>
+                    <span>Click spin to find winner!</span>
+                </div>
+            </div>
+
+            <!-- Game Selection - Always Visible -->
+            <div class="game-selector" id="gameSelector">
+                <h3 style="margin: 0 0 15px 0; text-align: center;">🎮 Choose Game Type</h3>
+                <div class="game-buttons">
+                    <button class="btn btn-primary game-btn" onclick="selectGameType('wheel')">🎡 Wheel</button>
+                    <button class="btn btn-warning game-btn" onclick="selectGameType('slot')">🎰 Slots</button>
+                    <button class="btn btn-primary game-btn" onclick="selectGameType('lottery')">🔮 Lottery</button>
+                    <button class="btn btn-warning game-btn" onclick="selectGameType('cards')">🎴 Cards</button>
+                </div>
+                
+                <!-- Mode Selection -->
+                <div class="mode-selector">
+                    <h4 style="margin: 0 0 10px 0; text-align: center;">🎯 Selection Mode</h4>
+                    <div class="mode-toggle">
+                        <div class="mode-option active tooltip" data-tooltip="Pick one winner and stop" onclick="setMode('single')">
+                            Single Winner
+                        </div>
+                        <div class="mode-option tooltip" data-tooltip="Eliminate participants one by one" onclick="setMode('elimination')">
+                            Elimination
+                        </div>
+                    </div>
+                    <div id="eliminationInfo" class="elimination-info" style="display: none;">
+                        <div class="elimination-counter">
+                            Remaining: <span id="remainingCount">0</span>
+                        </div>
+                        <small>Participants are eliminated until one winner remains</small>
+                    </div>
+                </div>
+                
+                <!-- Sound Controls -->
+                <div class="sound-controls">
+                    <button class="sound-toggle" id="soundToggle" onclick="toggleSound()">
+                        🔊 Sound On
+                    </button>
+                </div>
+            </div>
+
+            <!-- Participants Section - Initially Hidden -->
+            <div id="participantsSection" style="display: none;">
+                <h2>👥 Participants</h2>
+                
+                <div class="form-group">
+                    <label for="participantName">Name:</label>
+                    <input type="text" id="participantName" placeholder="Enter participant name" autocomplete="off">
+                </div>
+                
+                <div class="form-group">
+                    <label for="participantEmail">Email:</label>
+                    <input type="email" id="participantEmail" placeholder="Enter participant email" autocomplete="off">
+                </div>
+                
+                <div style="display: flex; gap: 10px;">
+                    <button class="btn btn-primary" onclick="addParticipant()" style="flex: 1;">➕ Add</button>
+                    <button class="btn btn-danger" onclick="clearAll()" style="flex: 1;">🗑️ Clear</button>
+                </div>
+                
+                <div class="participants-list" id="participantsList">
+                    <p style="text-align: center; opacity: 0.7;">No participants yet</p>
+                </div>
+                
+                <div style="margin-top: 20px; text-align: center;">
+                    <strong>Total: <span id="participantCount">0</span></strong>
+                </div>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <h1>🎉 Advanced Raffle System</h1>
+            
+            <!-- Game Selection Prompt - Initially Visible -->
+            <div id="gameSelectionPrompt" class="result" style="padding: 40px; text-align: center;">
+                <h2 style="color: #3498db; margin-bottom: 20px;">Welcome! 🎮</h2>
+                <p style="font-size: 1.2rem; margin-bottom: 20px;">Choose your game type and mode from the sidebar to get started!</p>
+                <div style="display: flex; justify-content: center; gap: 15px; flex-wrap: wrap; margin-top: 30px;">
+                    <div style="text-align: center; padding: 20px; background: rgba(255,255,255,0.1); border-radius: 15px; min-width: 120px;">
+                        <div style="font-size: 2rem; margin-bottom: 10px;">🎡</div>
+                        <strong>Wheel</strong><br>
+                        <small>Classic spinning wheel</small>
+                    </div>
+                    <div style="text-align: center; padding: 20px; background: rgba(255,255,255,0.1); border-radius: 15px; min-width: 120px;">
+                        <div style="font-size: 2rem; margin-bottom: 10px;">🎰</div>
+                        <strong>Slots</strong><br>
+                        <small>3-reel slot machine</small>
+                    </div>
+                    <div style="text-align: center; padding: 20px; background: rgba(255,255,255,0.1); border-radius: 15px; min-width: 120px;">
+                        <div style="font-size: 2rem; margin-bottom: 10px;">🔮</div>
+                        <strong>Lottery</strong><br>
+                        <small>Magical ball drawing</small>
+                    </div>
+                    <div style="text-align: center; padding: 20px; background: rgba(255,255,255,0.1); border-radius: 15px; min-width: 120px;">
+                        <div style="font-size: 2rem; margin-bottom: 10px;">🎴</div>
+                        <strong>Cards</strong><br>
+                        <small>Interactive card draw</small>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="wheel-container" id="wheelContainer" style="display: none;">
+                <canvas id="wheelCanvas" width="400" height="400"></canvas>
+                
+                <div class="controls">
+                    <div class="speed-selector">
+                        <span>Speed:</span>
+                        <button class="speed-btn active" onclick="setSpeed('slow')">Slow</button>
+                        <button class="speed-btn" onclick="setSpeed('medium')">Medium</button>
+                        <button class="speed-btn" onclick="setSpeed('fast')">Fast</button>
+                    </div>
+                    
+                    <button class="spin-btn" id="spinBtn" onclick="spinWheel()">
+                        🎯 SPIN THE WHEEL!
+                    </button>
+                </div>
+                
+                <div class="result" id="result">
+                    <p>Add participants to start spinning!</p>
+                </div>
+            </div>
+            
+            <!-- Slot Machine Game -->
+            <div class="game-area" id="slotGame" style="display: none;">
+                <h2>🎰 Slot Machine</h2>
+                <div class="slot-machine">
+                    <div class="slot-reels">
+                        <div class="slot-reel">
+                            <div class="reel-items" id="reel1"></div>
+                        </div>
+                        <div class="slot-reel">
+                            <div class="reel-items" id="reel2"></div>
+                        </div>
+                        <div class="slot-reel">
+                            <div class="reel-items" id="reel3"></div>
+                        </div>
+                    </div>
+                    <div class="slot-lever" onclick="spinSlots()">
+                        <div class="lever-handle"></div>
+                    </div>
+                </div>
+                <div class="controls">
+                    <button class="spin-btn" id="slotBtn" onclick="spinSlots()">🎰 PULL THE LEVER!</button>
+                </div>
+                <div class="result" id="slotResult">
+                    <p>Pull the lever to spin the slots!</p>
+                </div>
+            </div>
+            
+            <!-- Lottery Balls Game -->
+            <div class="game-area" id="lotteryGame" style="display: none;">
+                <h2>🔮 Lottery Balls</h2>
+                <div class="lottery-container">
+                    <div class="lottery-machine">
+                        <div class="lottery-balls" id="lotteryBalls"></div>
+                        <div class="lottery-tube">
+                            <div class="selected-ball" id="selectedBall"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="controls">
+                    <button class="spin-btn" id="lotteryBtn" onclick="drawLotteryBall()">🔮 DRAW A BALL!</button>
+                </div>
+                <div class="result" id="lotteryResult">
+                    <p>Draw a magical ball to reveal the winner!</p>
+                </div>
+            </div>
+            
+            <!-- Card Draw Game -->
+            <div class="game-area" id="cardGame" style="display: none;">
+                <h2>🎴 Card Draw</h2>
+                <div class="card-table">
+                    <div class="card-deck" id="cardDeck"></div>
+                    <div class="selected-card-area">
+                        <div class="selected-card" id="selectedCard"></div>
+                    </div>
+                </div>
+                <div class="controls">
+                    <button class="spin-btn" id="cardBtn" onclick="drawCard()">🎴 DRAW A CARD!</button>
+                </div>
+                <div class="result" id="cardResult">
+                    <p>Draw a card to find the winner!</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class RaffleWheel {
+            constructor() {
+                this.canvas = document.getElementById('wheelCanvas');
+                this.ctx = this.canvas.getContext('2d');
+                this.participants = [];
+                this.originalParticipants = []; // Store original list for elimination mode
+                this.currentRotation = 0;
+                this.isSpinning = false;
+                this.spinSpeed = 'medium';
+                this.gameMode = 'single'; // 'single' or 'elimination'
+                this.soundEnabled = true;
+                this.eliminationRound = 0;
+                this.selectedGameType = null; // Track selected game type
+                
+                this.centerX = this.canvas.width / 2;
+                this.centerY = this.canvas.height / 2;
+                this.radius = 180;
+                
+                this.colors = [
+                    '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FECA57',
+                    '#FF9FF3', '#54A0FF', '#5F27CD', '#00D2D3', '#FF9F43',
+                    '#10AC84', '#EE5A24', '#0984E3', '#A29BFE', '#6C5CE7',
+                    '#FF7675', '#74B9FF', '#A29BFE', '#FD79A8', '#FDCB6E'
+                ];
+                
+                // Initialize audio context for sound effects
+                this.initAudio();
+                
+                this.loadParticipants();
+                
+                // Only draw wheel if game type is selected and there are participants
+                if (this.selectedGameType === 'wheel') {
+                    this.drawWheel();
+                }
+                
+                // Bind enter key - but only if participants section is visible
+                this.bindEvents();
+            }
+            
+            bindEvents() {
+                const nameInput = document.getElementById('participantName');
+                const emailInput = document.getElementById('participantEmail');
+                
+                if (nameInput && emailInput) {
+                    nameInput.addEventListener('keypress', (e) => {
+                        if (e.key === 'Enter') this.addParticipant();
+                    });
+                    emailInput.addEventListener('keypress', (e) => {
+                        if (e.key === 'Enter') this.addParticipant();
+                    });
+                }
+            }
+            
+            initAudio() {
+                try {
+                    this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                    this.sounds = {};
+                    this.createSounds();
+                } catch (e) {
+                    console.log('Audio not supported');
+                    this.soundEnabled = false;
+                }
+            }
+            
+            createSounds() {
+                // General sounds
+                this.sounds.spin = this.createTone(440, 0.1, 'sawtooth');
+                this.sounds.win = this.createTone(880, 0.3, 'sine');
+                this.sounds.click = this.createTone(800, 0.05, 'square');
+                this.sounds.eliminate = this.createTone(200, 0.2, 'triangle');
+                
+                // Slot machine sounds
+                this.sounds.slotSpin = this.createSlotSpinSound();
+                this.sounds.slotStop = this.createTone(600, 0.15, 'square');
+                this.sounds.jackpot = this.createJackpotSound();
+                
+                // Lottery sounds
+                this.sounds.ballMix = this.createBallMixSound();
+                this.sounds.ballDraw = this.createTone(750, 0.4, 'sine');
+                this.sounds.mystical = this.createMysticalSound();
+                
+                // Card sounds
+                this.sounds.cardShuffle = this.createCardShuffleSound();
+                this.sounds.cardFlip = this.createTone(350, 0.1, 'triangle');
+                this.sounds.cardWin = this.createTone(950, 0.4, 'sine');
+            }
+            
+            createTone(frequency, duration, type = 'sine') {
+                return () => {
+                    if (!this.soundEnabled || !this.audioContext) return;
+                    
+                    const oscillator = this.audioContext.createOscillator();
+                    const gainNode = this.audioContext.createGain();
+                    
+                    oscillator.connect(gainNode);
+                    gainNode.connect(this.audioContext.destination);
+                    
+                    oscillator.frequency.setValueAtTime(frequency, this.audioContext.currentTime);
+                    oscillator.type = type;
+                    
+                    gainNode.gain.setValueAtTime(0.1, this.audioContext.currentTime);
+                    gainNode.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime + duration);
+                    
+                    oscillator.start(this.audioContext.currentTime);
+                    oscillator.stop(this.audioContext.currentTime + duration);
+                };
+            }
+            
+            playSound(soundName) {
+                if (this.sounds[soundName]) {
+                    this.sounds[soundName]();
+                }
+            }
+            
+            // Advanced sound creation methods
+            createSlotSpinSound() {
+                return () => {
+                    if (!this.soundEnabled || !this.audioContext) return;
+                    
+                    // Create rapid clicking sound for slot reels
+                    for (let i = 0; i < 8; i++) {
+                        setTimeout(() => {
+                            const oscillator = this.audioContext.createOscillator();
+                            const gainNode = this.audioContext.createGain();
+                            
+                            oscillator.connect(gainNode);
+                            gainNode.connect(this.audioContext.destination);
+                            
+                            oscillator.frequency.setValueAtTime(300 + i * 50, this.audioContext.currentTime);
+                            oscillator.type = 'square';
+                            
+                            gainNode.gain.setValueAtTime(0.05, this.audioContext.currentTime);
+                            gainNode.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime + 0.1);
+                            
+                            oscillator.start(this.audioContext.currentTime);
+                            oscillator.stop(this.audioContext.currentTime + 0.1);
+                        }, i * 100);
+                    }
+                };
+            }
+            
+            createJackpotSound() {
+                return () => {
+                    if (!this.soundEnabled || !this.audioContext) return;
+                    
+                    // Create ascending victory sound
+                    const notes = [523, 659, 784, 1047]; // C, E, G, C
+                    notes.forEach((freq, index) => {
+                        setTimeout(() => {
+                            const oscillator = this.audioContext.createOscillator();
+                            const gainNode = this.audioContext.createGain();
+                            
+                            oscillator.connect(gainNode);
+                            gainNode.connect(this.audioContext.destination);
+                            
+                            oscillator.frequency.setValueAtTime(freq, this.audioContext.currentTime);
+                            oscillator.type = 'sine';
+                            
+                            gainNode.gain.setValueAtTime(0.1, this.audioContext.currentTime);
+                            gainNode.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime + 0.3);
+                            
+                            oscillator.start(this.audioContext.currentTime);
+                            oscillator.stop(this.audioContext.currentTime + 0.3);
+                        }, index * 150);
+                    });
+                };
+            }
+            
+            createBallMixSound() {
+                return () => {
+                    if (!this.soundEnabled || !this.audioContext) return;
+                    
+                    // Create swirling/mixing sound
+                    for (let i = 0; i < 12; i++) {
+                        setTimeout(() => {
+                            const oscillator = this.audioContext.createOscillator();
+                            const gainNode = this.audioContext.createGain();
+                            
+                            oscillator.connect(gainNode);
+                            gainNode.connect(this.audioContext.destination);
+                            
+                            const freq = 200 + Math.sin(i * 0.5) * 100;
+                            oscillator.frequency.setValueAtTime(freq, this.audioContext.currentTime);
+                            oscillator.type = 'triangle';
+                            
+                            gainNode.gain.setValueAtTime(0.03, this.audioContext.currentTime);
+                            gainNode.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime + 0.15);
+                            
+                            oscillator.start(this.audioContext.currentTime);
+                            oscillator.stop(this.audioContext.currentTime + 0.15);
+                        }, i * 120);
+                    }
+                };
+            }
+            
+            createMysticalSound() {
+                return () => {
+                    if (!this.soundEnabled || !this.audioContext) return;
+                    
+                    // Create mystical/magical sound
+                    const oscillator = this.audioContext.createOscillator();
+                    const gainNode = this.audioContext.createGain();
+                    
+                    oscillator.connect(gainNode);
+                    gainNode.connect(this.audioContext.destination);
+                    
+                    oscillator.frequency.setValueAtTime(400, this.audioContext.currentTime);
+                    oscillator.frequency.exponentialRampToValueAtTime(800, this.audioContext.currentTime + 0.5);
+                    oscillator.type = 'sine';
+                    
+                    gainNode.gain.setValueAtTime(0.08, this.audioContext.currentTime);
+                    gainNode.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime + 0.8);
+                    
+                    oscillator.start(this.audioContext.currentTime);
+                    oscillator.stop(this.audioContext.currentTime + 0.8);
+                };
+            }
+            
+            createCardShuffleSound() {
+                return () => {
+                    if (!this.soundEnabled || !this.audioContext) return;
+                    
+                    // Create card shuffling sound
+                    for (let i = 0; i < 15; i++) {
+                        setTimeout(() => {
+                            const oscillator = this.audioContext.createOscillator();
+                            const gainNode = this.audioContext.createGain();
+                            
+                            oscillator.connect(gainNode);
+                            gainNode.connect(this.audioContext.destination);
+                            
+                            const freq = 150 + Math.random() * 200;
+                            oscillator.frequency.setValueAtTime(freq, this.audioContext.currentTime);
+                            oscillator.type = 'sawtooth';
+                            
+                            gainNode.gain.setValueAtTime(0.02, this.audioContext.currentTime);
+                            gainNode.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime + 0.05);
+                            
+                            oscillator.start(this.audioContext.currentTime);
+                            oscillator.stop(this.audioContext.currentTime + 0.05);
+                        }, i * 30);
+                    }
+                };
+            }
+            
+            addParticipant() {
+                const name = document.getElementById('participantName').value.trim();
+                const email = document.getElementById('participantEmail').value.trim();
+                
+                if (!name) {
+                    this.showNotification('Please enter a name!', 'error');
+                    document.getElementById('participantName').focus();
+                    return;
+                }
+                
+                if (!email) {
+                    this.showNotification('Please enter an email!', 'error');
+                    document.getElementById('participantEmail').focus();
+                    return;
+                }
+                
+                // Validate email format
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                if (!emailRegex.test(email)) {
+                    this.showNotification('Please enter a valid email address!', 'error');
+                    document.getElementById('participantEmail').focus();
+                    return;
+                }
+                
+                // Check for duplicate emails
+                if (this.participants.some(p => p.email.toLowerCase() === email.toLowerCase())) {
+                    this.showNotification('This email is already registered!', 'error');
+                    document.getElementById('participantEmail').focus();
+                    return;
+                }
+                
+                this.participants.push({
+                    name: name,
+                    email: email,
+                    id: Date.now()
+                });
+                
+                // Store original participants for elimination mode
+                this.originalParticipants = [...this.participants];
+                
+                this.playSound('click');
+                this.saveParticipants();
+                this.updateParticipantsList();
+                this.drawWheel();
+                
+                // Clear inputs
+                document.getElementById('participantName').value = '';
+                document.getElementById('participantEmail').value = '';
+                document.getElementById('participantName').focus();
+                
+                this.showNotification(`✅ Added ${name} successfully!`, 'success');
+            }
+            
+            showNotification(message, type = 'info') {
+                // Remove existing notification
+                const existing = document.querySelector('.notification');
+                if (existing) existing.remove();
+                
+                const notification = document.createElement('div');
+                notification.className = `notification ${type}`;
+                notification.innerHTML = message;
+                notification.style.cssText = `
+                    position: fixed;
+                    top: 20px;
+                    right: 20px;
+                    padding: 15px 20px;
+                    border-radius: 10px;
+                    color: white;
+                    font-weight: 600;
+                    z-index: 1000;
+                    animation: slideIn 0.3s ease;
+                    max-width: 300px;
+                    ${type === 'error' ? 'background: linear-gradient(45deg, #e74c3c, #c0392b);' : ''}
+                    ${type === 'success' ? 'background: linear-gradient(45deg, #27ae60, #2ecc71);' : ''}
+                    ${type === 'info' ? 'background: linear-gradient(45deg, #3498db, #2980b9);' : ''}
+                `;
+                
+                document.body.appendChild(notification);
+                
+                setTimeout(() => {
+                    notification.style.animation = 'slideOut 0.3s ease';
+                    setTimeout(() => notification.remove(), 300);
+                }, 3000);
+            }
+            
+            removeParticipant(id) {
+                const participant = this.participants.find(p => p.id === id);
+                if (confirm(`Remove ${participant.name}?`)) {
+                    this.participants = this.participants.filter(p => p.id !== id);
+                    this.originalParticipants = [...this.participants];
+                    this.eliminationRound = 0; // Reset elimination round
+                    this.playSound('eliminate');
+                    this.saveParticipants();
+                    this.updateParticipantsList();
+                    this.drawWheel();
+                    this.showNotification(`🗑️ Removed ${participant.name}`, 'info');
+                }
+            }
+            
+            clearAll() {
+                if (this.participants.length === 0) {
+                    this.showNotification('No participants to clear!', 'error');
+                    return;
+                }
+                
+                if (confirm('Clear all participants?')) {
+                    this.participants = [];
+                    this.originalParticipants = [];
+                    this.eliminationRound = 0;
+                    this.playSound('eliminate');
+                    this.saveParticipants();
+                    this.updateParticipantsList();
+                    this.drawWheel();
+                    this.showNotification('🗑️ All participants cleared!', 'info');
+                }
+            }
+            
+            updateParticipantsList() {
+                const list = document.getElementById('participantsList');
+                const count = document.getElementById('participantCount');
+                const remainingCount = document.getElementById('remainingCount');
+                
+                if (this.participants.length === 0) {
+                    list.innerHTML = '<p style="text-align: center; opacity: 0.7;">No participants yet</p>';
+                } else {
+                    list.innerHTML = this.participants.map(p => `
+                        <div class="participant-item">
+                            <div>
+                                <strong>${p.name}</strong><br>
+                                <small style="opacity: 0.8;">${p.email}</small>
+                            </div>
+                            <button class="btn btn-danger" style="padding: 5px 10px; font-size: 0.8rem;" 
+                                    onclick="wheel.removeParticipant(${p.id})" title="Remove ${p.name}">×</button>
+                        </div>
+                    `).join('');
+                }
+                
+                count.textContent = this.participants.length;
+                if (remainingCount) {
+                    remainingCount.textContent = this.participants.length;
+                }
+                
+                // Update elimination info visibility
+                this.updateEliminationInfo();
+                
+                // Redraw wheel if it's the selected game
+                if (this.selectedGameType === 'wheel') {
+                    this.drawWheel();
+                }
+            }
+            
+            updateEliminationInfo() {
+                const eliminationInfo = document.getElementById('eliminationInfo');
+                const isElimination = this.gameMode === 'elimination';
+                
+                if (eliminationInfo) {
+                    eliminationInfo.style.display = isElimination && this.participants.length > 1 ? 'block' : 'none';
+                }
+            }
+            
+            drawWheel() {
+                this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+                
+                if (this.participants.length === 0) {
+                    // Draw empty wheel
+                    this.ctx.beginPath();
+                    this.ctx.arc(this.centerX, this.centerY, this.radius, 0, 2 * Math.PI);
+                    this.ctx.fillStyle = '#bdc3c7';
+                    this.ctx.fill();
+                    this.ctx.strokeStyle = '#95a5a6';
+                    this.ctx.lineWidth = 3;
+                    this.ctx.stroke();
+                    
+                    // Add text
+                    this.ctx.fillStyle = '#2c3e50';
+                    this.ctx.font = 'bold 20px Arial';
+                    this.ctx.textAlign = 'center';
+                    this.ctx.fillText('Add participants', this.centerX, this.centerY - 10);
+                    this.ctx.fillText('to start!', this.centerX, this.centerY + 15);
+                    
+                    this.drawPointer();
+                    return;
+                }
+                
+                const segmentAngle = (2 * Math.PI) / this.participants.length;
+                
+                // Draw segments
+                this.participants.forEach((participant, index) => {
+                    const startAngle = (index * segmentAngle) + this.currentRotation;
+                    const endAngle = ((index + 1) * segmentAngle) + this.currentRotation;
+                    const color = this.colors[index % this.colors.length];
+                    
+                    // Draw segment
+                    this.ctx.beginPath();
+                    this.ctx.moveTo(this.centerX, this.centerY);
+                    this.ctx.arc(this.centerX, this.centerY, this.radius, startAngle, endAngle);
+                    this.ctx.closePath();
+                    this.ctx.fillStyle = color;
+                    this.ctx.fill();
+                    this.ctx.strokeStyle = '#fff';
+                    this.ctx.lineWidth = 2;
+                    this.ctx.stroke();
+                    
+                    // Draw text
+                    const textAngle = startAngle + segmentAngle / 2;
+                    const textRadius = this.radius * 0.7;
+                    const textX = this.centerX + Math.cos(textAngle) * textRadius;
+                    const textY = this.centerY + Math.sin(textAngle) * textRadius;
+                    
+                    this.ctx.save();
+                    this.ctx.translate(textX, textY);
+                    this.ctx.rotate(textAngle + Math.PI / 2);
+                    this.ctx.fillStyle = '#fff';
+                    this.ctx.font = 'bold 14px Arial';
+                    this.ctx.textAlign = 'center';
+                    this.ctx.shadowColor = 'rgba(0,0,0,0.5)';
+                    this.ctx.shadowBlur = 2;
+                    this.ctx.fillText(participant.name, 0, 0);
+                    this.ctx.restore();
+                });
+                
+                // Draw center circle
+                this.ctx.beginPath();
+                this.ctx.arc(this.centerX, this.centerY, 30, 0, 2 * Math.PI);
+                this.ctx.fillStyle = '#2c3e50';
+                this.ctx.fill();
+                this.ctx.strokeStyle = '#fff';
+                this.ctx.lineWidth = 3;
+                this.ctx.stroke();
+                
+                // Draw pointer
+                this.drawPointer();
+            }
+            
+            drawPointer() {
+                // Draw triangle pointer at top
+                this.ctx.beginPath();
+                this.ctx.moveTo(this.centerX, this.centerY - this.radius - 20);
+                this.ctx.lineTo(this.centerX - 15, this.centerY - this.radius + 5);
+                this.ctx.lineTo(this.centerX + 15, this.centerY - this.radius + 5);
+                this.ctx.closePath();
+                this.ctx.fillStyle = '#e74c3c';
+                this.ctx.fill();
+                this.ctx.strokeStyle = '#c0392b';
+                this.ctx.lineWidth = 2;
+                this.ctx.stroke();
+            }
+            
+            spinWheel() {
+                if (this.participants.length === 0) {
+                    this.showNotification('Add participants first!', 'error');
+                    return;
+                }
+                
+                if (this.participants.length === 1 && this.gameMode === 'elimination') {
+                    this.showNotification('Need at least 2 participants for elimination mode!', 'error');
+                    return;
+                }
+                
+                if (this.isSpinning) return;
+                
+                this.isSpinning = true;
+                document.getElementById('spinBtn').disabled = true;
+                
+                // Update button text based on mode
+                const buttonText = this.gameMode === 'elimination' 
+                    ? (this.participants.length === 2 ? '🏆 FINAL SPIN!' : '❌ ELIMINATE!')
+                    : '🌪️ SPINNING...';
+                document.getElementById('spinBtn').textContent = buttonText;
+                
+                this.playSound('spin');
+                this.showResult('🎡 Spinning the wheel...');
+                
+                // Speed settings
+                const speedSettings = {
+                    slow: { duration: 4000, revolutions: 4 },
+                    medium: { duration: 3000, revolutions: 6 },
+                    fast: { duration: 2000, revolutions: 8 }
+                };
+                
+                const settings = speedSettings[this.spinSpeed];
+                const winnerIndex = Math.floor(Math.random() * this.participants.length);
+                const segmentAngle = (2 * Math.PI) / this.participants.length;
+                const targetAngle = winnerIndex * segmentAngle + segmentAngle / 2;
+                
+                // Calculate total rotation
+                const totalRotation = settings.revolutions * 2 * Math.PI + (2 * Math.PI - targetAngle);
+                
+                const startTime = Date.now();
+                const startRotation = this.currentRotation;
+                
+                const animate = () => {
+                    const elapsed = Date.now() - startTime;
+                    const progress = Math.min(elapsed / settings.duration, 1);
+                    
+                    // Easing function (ease out)
+                    const easedProgress = 1 - Math.pow(1 - progress, 3);
+                    
+                    this.currentRotation = startRotation + totalRotation * easedProgress;
+                    this.drawWheel();
+                    
+                    if (progress < 1) {
+                        requestAnimationFrame(animate);
+                    } else {
+                        this.finishSpin(winnerIndex);
+                    }
+                };
+                
+                animate();
+            }
+            
+            finishSpin(winnerIndex) {
+                this.isSpinning = false;
+                document.getElementById('spinBtn').disabled = false;
+                
+                const winner = this.participants[winnerIndex];
+                
+                if (this.gameMode === 'elimination') {
+                    this.eliminationRound++;
+                    
+                    if (this.participants.length === 2) {
+                        // Final winner
+                        this.playSound('win');
+                        document.getElementById('spinBtn').textContent = '🎯 SPIN THE WHEEL!';
+                        this.showResult(`
+                            <div class="winner-announcement">
+                                🏆 FINAL WINNER! 🏆<br>
+                                <strong>${winner.name}</strong><br>
+                                <small>${winner.email}</small><br>
+                                <small style="opacity: 0.8;">Survived ${this.eliminationRound} rounds!</small>
+                            </div>
+                        `);
+                        this.createConfetti();
+                        this.saveWinner(winner);
+                        
+                        // Reset for next game
+                        setTimeout(() => {
+                            if (confirm('Start a new elimination round with all participants?')) {
+                                this.resetElimination();
+                            }
+                        }, 3000);
+                    } else {
+                        // Eliminate participant
+                        this.playSound('eliminate');
+                        this.participants = this.participants.filter((_, index) => index !== winnerIndex);
+                        this.updateParticipantsList();
+                        this.drawWheel();
+                        
+                        document.getElementById('spinBtn').textContent = this.participants.length === 2 
+                            ? '🏆 FINAL SPIN!' : '❌ ELIMINATE NEXT!';
+                        
+                        this.showResult(`
+                            <div style="text-align: center; color: #e74c3c;">
+                                ❌ ELIMINATED ❌<br>
+                                <strong>${winner.name}</strong><br>
+                                <small>Round ${this.eliminationRound}</small><br>
+                                <br>
+                                <small style="color: #f39c12;">Remaining: ${this.participants.length}</small>
+                            </div>
+                        `);
+                    }
+                } else {
+                    // Single winner mode
+                    this.playSound('win');
+                    document.getElementById('spinBtn').textContent = '🎯 SPIN THE WHEEL!';
+                    this.showResult(`
+                        <div class="winner-announcement">
+                            🏆 WINNER! 🏆<br>
+                            <strong>${winner.name}</strong><br>
+                            <small>${winner.email}</small>
+                        </div>
+                    `);
+                    this.createConfetti();
+                    this.saveWinner(winner);
+                }
+            }
+            
+            resetElimination() {
+                this.participants = [...this.originalParticipants];
+                this.eliminationRound = 0;
+                this.updateParticipantsList();
+                this.drawWheel();
+                this.showNotification('🔄 Elimination reset - All participants restored!', 'info');
+            }
+            
+            createConfetti() {
+                for (let i = 0; i < 50; i++) {
+                    setTimeout(() => {
+                        const confetti = document.createElement('div');
+                        confetti.className = 'confetti';
+                        confetti.style.left = Math.random() * 100 + 'vw';
+                        confetti.style.backgroundColor = this.colors[Math.floor(Math.random() * this.colors.length)];
+                        confetti.style.animationDelay = Math.random() * 2 + 's';
+                        document.body.appendChild(confetti);
+                        
+                        setTimeout(() => confetti.remove(), 3000);
+                    }, i * 50);
+                }
+            }
+            
+            setSpeed(speed) {
+                this.spinSpeed = speed;
+                document.querySelectorAll('.speed-btn').forEach(btn => btn.classList.remove('active'));
+                event.target.classList.add('active');
+            }
+            
+            showResult(message) {
+                document.getElementById('result').innerHTML = message;
+            }
+            
+            saveParticipants() {
+                localStorage.setItem('raffleParticipants', JSON.stringify(this.participants));
+            }
+            
+            loadParticipants() {
+                const saved = localStorage.getItem('raffleParticipants');
+                if (saved) {
+                    this.participants = JSON.parse(saved);
+                    this.updateParticipantsList();
+                }
+            }
+            
+            saveWinner(winner) {
+                const winners = JSON.parse(localStorage.getItem('raffleWinners') || '[]');
+                winners.push({
+                    winner: winner,
+                    timestamp: new Date().toISOString(),
+                    totalParticipants: this.participants.length
+                });
+                localStorage.setItem('raffleWinners', JSON.stringify(winners));
+            }
+            
+            // Slot Machine Game
+            setupSlotMachine() {
+                const reels = ['reel1', 'reel2', 'reel3'];
+                reels.forEach(reelId => {
+                    const reel = document.getElementById(reelId);
+                    reel.innerHTML = '';
+                    
+                    // Create multiple sets of all participants for spinning effect
+                    for (let i = 0; i < 5; i++) {
+                        this.participants.forEach(participant => {
+                            const item = document.createElement('div');
+                            item.className = 'reel-item';
+                            item.textContent = participant.name;
+                            reel.appendChild(item);
+                        });
+                    }
+                });
+            }
+            
+            spinSlots() {
+                if (this.participants.length === 0) {
+                    this.showNotification('Add participants first!', 'error');
+                    return;
+                }
+                
+                if (this.isSpinning) return;
+                
+                this.isSpinning = true;
+                document.getElementById('slotBtn').disabled = true;
+                document.getElementById('slotBtn').textContent = '🎰 SPINNING...';
+                document.getElementById('slotResult').innerHTML = '<p>🎰 Spinning the slots...</p>';
+                
+                // Play slot machine sounds
+                this.playSound('slotSpin');
+                
+                this.setupSlotMachine();
+                
+                const winnerIndex = Math.floor(Math.random() * this.participants.length);
+                const winner = this.participants[winnerIndex];
+                
+                // Animate reels with different delays
+                const reels = ['reel1', 'reel2', 'reel3'];
+                const delays = [1500, 2500, 3500];
+                
+                reels.forEach((reelId, index) => {
+                    const reel = document.getElementById(reelId);
+                    const finalPosition = -(winnerIndex * 60 + 60 * 2); // Position to show winner
+                    
+                    setTimeout(() => {
+                        reel.style.transform = `translateY(${finalPosition}px)`;
+                        // Play stop sound for each reel
+                        this.playSound('slotStop');
+                    }, 500 + index * 300);
+                    
+                    setTimeout(() => {
+                        if (index === reels.length - 1) {
+                            this.finishSlotSpin(winner);
+                        }
+                    }, delays[index]);
+                });
+            }
+            
+            finishSlotSpin(winner) {
+                this.isSpinning = false;
+                document.getElementById('slotBtn').disabled = false;
+                document.getElementById('slotBtn').textContent = '🎰 PULL THE LEVER!';
+                
+                // Play jackpot sound
+                this.playSound('jackpot');
+                
+                document.getElementById('slotResult').innerHTML = `
+                    <div class="winner-announcement">
+                        🎰 JACKPOT! 🎰<br>
+                        <strong>${winner.name}</strong><br>
+                        <small>${winner.email}</small>
+                    </div>
+                `;
+                
+                this.createConfetti();
+                this.saveWinner(winner);
+            }
+            
+            // Lottery Balls Game
+            setupLotteryBalls() {
+                const ballsContainer = document.getElementById('lotteryBalls');
+                ballsContainer.innerHTML = '';
+                
+                this.participants.forEach((participant, index) => {
+                    const ball = document.createElement('div');
+                    ball.className = 'lottery-ball';
+                    ball.textContent = participant.name;
+                    ball.style.backgroundColor = this.colors[index % this.colors.length];
+                    ball.style.animationDelay = `${index * 0.1}s`;
+                    ballsContainer.appendChild(ball);
+                });
+            }
+            
+            drawLotteryBall() {
+                if (this.participants.length === 0) {
+                    this.showNotification('Add participants first!', 'error');
+                    return;
+                }
+                
+                if (this.isSpinning) return;
+                
+                this.isSpinning = true;
+                document.getElementById('lotteryBtn').disabled = true;
+                document.getElementById('lotteryBtn').textContent = '🔮 DRAWING...';
+                document.getElementById('lotteryResult').innerHTML = '<p>🔮 Drawing a magical ball...</p>';
+                
+                // Play ball mixing sound
+                this.playSound('ballMix');
+                
+                this.setupLotteryBalls();
+                
+                const winnerIndex = Math.floor(Math.random() * this.participants.length);
+                const winner = this.participants[winnerIndex];
+                
+                // Animate balls
+                const balls = document.querySelectorAll('.lottery-ball');
+                balls.forEach((ball, index) => {
+                    setTimeout(() => {
+                        ball.style.transform = 'scale(0.8) translateY(-20px)';
+                        ball.style.opacity = '0.7';
+                    }, index * 100);
+                });
+                
+                // Show selected ball
+                setTimeout(() => {
+                    // Play mystical sound when ball appears
+                    this.playSound('mystical');
+                    
+                    const selectedBall = document.getElementById('selectedBall');
+                    selectedBall.style.display = 'flex';
+                    selectedBall.textContent = winner.name;
+                    selectedBall.style.backgroundColor = this.colors[winnerIndex % this.colors.length];
+                    selectedBall.style.animation = 'ballGlow 2s infinite';
+                    
+                    setTimeout(() => {
+                        this.playSound('ballDraw');
+                        this.finishLotteryDraw(winner);
+                    }, 800);
+                }, 1500);
+            }
+            
+            finishLotteryDraw(winner) {
+                this.isSpinning = false;
+                document.getElementById('lotteryBtn').disabled = false;
+                document.getElementById('lotteryBtn').textContent = '🔮 DRAW A BALL!';
+                
+                document.getElementById('lotteryResult').innerHTML = `
+                    <div class="winner-announcement">
+                        🔮 The Crystal Ball Has Spoken! 🔮<br>
+                        <strong>${winner.name}</strong><br>
+                        <small>${winner.email}</small>
+                    </div>
+                `;
+                
+                this.createConfetti();
+                this.saveWinner(winner);
+            }
+            
+            // Card Draw Game
+            setupCardDeck() {
+                const deck = document.getElementById('cardDeck');
+                deck.innerHTML = '';
+                
+                this.participants.forEach((participant, index) => {
+                    const card = document.createElement('div');
+                    card.className = 'playing-card';
+                    card.textContent = participant.name;
+                    card.style.left = `${index * 5}px`;
+                    card.style.top = `${index * 3}px`;
+                    card.style.zIndex = this.participants.length - index;
+                    deck.appendChild(card);
+                });
+            }
+            
+            drawCard() {
+                if (this.participants.length === 0) {
+                    this.showNotification('Add participants first!', 'error');
+                    return;
+                }
+                
+                if (this.isSpinning) return;
+                
+                this.isSpinning = true;
+                document.getElementById('cardBtn').disabled = true;
+                document.getElementById('cardBtn').textContent = '🎴 DRAWING...';
+                document.getElementById('cardResult').innerHTML = '<p>🎴 Drawing a card...</p>';
+                
+                // Play card shuffle sound
+                this.playSound('cardShuffle');
+                
+                this.setupCardDeck();
+                
+                const winnerIndex = Math.floor(Math.random() * this.participants.length);
+                const winner = this.participants[winnerIndex];
+                
+                // Animate cards flying
+                const cards = document.querySelectorAll('.playing-card');
+                cards.forEach((card, index) => {
+                    setTimeout(() => {
+                        // Play card flip sound for each card
+                        this.playSound('cardFlip');
+                        
+                        if (index === winnerIndex) {
+                            // Winner card flies to selected area
+                            card.style.transform = 'translateX(200px) translateY(-50px) scale(1.2)';
+                            card.style.zIndex = '1000';
+                        } else {
+                            // Other cards fly away
+                            const angle = Math.random() * 360;
+                            const distance = 300 + Math.random() * 200;
+                            const x = Math.cos(angle) * distance;
+                            const y = Math.sin(angle) * distance;
+                            card.style.transform = `translate(${x}px, ${y}px) rotate(${angle}deg) scale(0.5)`;
+                            card.style.opacity = '0';
+                        }
+                    }, index * 50);
+                });
+                
+                setTimeout(() => {
+                    this.finishCardDraw(winner);
+                }, 2500);
+            }
+            
+            finishCardDraw(winner) {
+                this.isSpinning = false;
+                document.getElementById('cardBtn').disabled = false;
+                document.getElementById('cardBtn').textContent = '🎴 DRAW A CARD!';
+                
+                // Play card win sound
+                this.playSound('cardWin');
+                
+                const selectedCard = document.getElementById('selectedCard');
+                selectedCard.style.display = 'flex';
+                selectedCard.textContent = winner.name;
+                
+                document.getElementById('cardResult').innerHTML = `
+                    <div class="winner-announcement">
+                        🎴 The Cards Have Decided! 🎴<br>
+                        <strong>${winner.name}</strong><br>
+                        <small>${winner.email}</small>
+                    </div>
+                `;
+                
+                this.createConfetti();
+                this.saveWinner(winner);
+            }
+        }
+        
+        // Global functions for buttons
+        const wheel = new RaffleWheel();
+        
+        function addParticipant() {
+            wheel.addParticipant();
+        }
+        
+        function clearAll() {
+            wheel.clearAll();
+        }
+        
+        function spinWheel() {
+            wheel.spinWheel();
+        }
+        
+        function setSpeed(speed) {
+            wheel.setSpeed(speed);
+        }
+        
+        // Game switching functions
+        function openGame(gameType) {
+            // Hide all game areas
+            document.getElementById('wheelContainer').style.display = 'none';
+            document.getElementById('slotGame').style.display = 'none';
+            document.getElementById('lotteryGame').style.display = 'none';
+            document.getElementById('cardGame').style.display = 'none';
+            document.getElementById('gameSelectionPrompt').style.display = 'none';
+            
+            // Show selected game
+            switch(gameType) {
+                case 'wheel':
+                    document.getElementById('wheelContainer').style.display = 'block';
+                    if (wheel.selectedGameType === 'wheel') {
+                        wheel.drawWheel();
+                    }
+                    break;
+                case 'slot':
+                    document.getElementById('slotGame').style.display = 'block';
+                    if (wheel.participants.length > 0) {
+                        wheel.setupSlotMachine();
+                    }
+                    break;
+                case 'lottery':
+                    document.getElementById('lotteryGame').style.display = 'block';
+                    if (wheel.participants.length > 0) {
+                        wheel.setupLotteryBalls();
+                    }
+                    break;
+                case 'cards':
+                    document.getElementById('cardGame').style.display = 'block';
+                    if (wheel.participants.length > 0) {
+                        wheel.setupCardDeck();
+                    }
+                    break;
+            }
+            
+            // Add back button
+            addBackButton(gameType);
+        }
+        
+        function addBackButton(currentGame) {
+            // Remove existing back button
+            const existingBtn = document.querySelector('.back-btn');
+            if (existingBtn) existingBtn.remove();
+            
+            // Add new back button
+            const backBtn = document.createElement('button');
+            backBtn.className = 'back-btn';
+            backBtn.textContent = '← Back to Game Selection';
+            backBtn.onclick = () => showGameSelection();
+            
+            // Fix the selector for card game
+            let gameAreaId;
+            if (currentGame === 'wheel') {
+                gameAreaId = 'wheelContainer';
+            } else if (currentGame === 'cards') {
+                gameAreaId = 'cardGame';
+            } else {
+                gameAreaId = currentGame + 'Game';
+            }
+            
+            const gameArea = document.querySelector(`#${gameAreaId}`);
+            if (gameArea) {
+                gameArea.insertBefore(backBtn, gameArea.firstChild);
+            }
+        }
+        
+        function showGameSelection() {
+            // Hide all games
+            document.getElementById('wheelContainer').style.display = 'none';
+            document.getElementById('slotGame').style.display = 'none';
+            document.getElementById('lotteryGame').style.display = 'none';
+            document.getElementById('cardGame').style.display = 'none';
+            
+            // Show game selection prompt
+            document.getElementById('gameSelectionPrompt').style.display = 'block';
+            
+            // Show game selector on sidebar again
+            const gameSelector = document.getElementById('gameSelector');
+            gameSelector.style.display = 'block';
+            
+            // Hide participants section
+            document.getElementById('participantsSection').style.display = 'none';
+            
+            // Reset selected game type
+            wheel.selectedGameType = null;
+            
+            // Remove back button
+            const existingBtn = document.querySelector('.back-btn');
+            if (existingBtn) existingBtn.remove();
+            
+            // Show notification
+            wheel.showNotification('🎮 Choose a new game type to continue', 'info');
+        }
+        
+        // Game-specific functions
+        function spinSlots() {
+            wheel.spinSlots();
+        }
+        
+        function drawLotteryBall() {
+            wheel.drawLotteryBall();
+        }
+        
+        function drawCard() {
+            wheel.drawCard();
+        }
+        
+        // Mode and sound control functions
+        function setMode(mode) {
+            wheel.gameMode = mode;
+            wheel.playSound('click');
+            
+            // Update UI
+            document.querySelectorAll('.mode-option').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            // Reset elimination if switching modes
+            if (mode === 'single') {
+                wheel.participants = [...wheel.originalParticipants];
+                wheel.eliminationRound = 0;
+                wheel.updateParticipantsList();
+                if (wheel.selectedGameType === 'wheel') {
+                    wheel.drawWheel();
+                }
+                wheel.showNotification('🎯 Single winner mode selected', 'info');
+            } else {
+                wheel.showNotification('❌ Elimination mode selected', 'info');
+            }
+            
+            wheel.updateEliminationInfo();
+        }
+        
+        function selectGameType(gameType) {
+            wheel.selectedGameType = gameType;
+            wheel.playSound('click');
+            
+            // Hide game selector on sidebar when game is selected
+            const gameSelector = document.getElementById('gameSelector');
+            gameSelector.style.display = 'none';
+            
+            // Show participants section
+            const participantsSection = document.getElementById('participantsSection');
+            const gameSelectionPrompt = document.getElementById('gameSelectionPrompt');
+            
+            participantsSection.style.display = 'block';
+            gameSelectionPrompt.style.display = 'none';
+            
+            // Open the selected game
+            openGame(gameType);
+            
+            // Auto-focus name input after game selection
+            setTimeout(() => {
+                const nameInput = document.getElementById('participantName');
+                if (nameInput) {
+                    nameInput.focus();
+                }
+            }, 100);
+            
+            // Rebind events since the elements are now visible
+            wheel.bindEvents();
+            
+            // Show notification
+            const gameNames = {
+                'wheel': '🎡 Wheel of Fortune',
+                'slot': '🎰 Slot Machine',
+                'lottery': '🔮 Lottery Balls',
+                'cards': '🎴 Card Draw'
+            };
+            
+            wheel.showNotification(`${gameNames[gameType]} selected! Now add participants.`, 'success');
+        }
+        
+        function toggleSound() {
+            wheel.soundEnabled = !wheel.soundEnabled;
+            const toggle = document.getElementById('soundToggle');
+            
+            if (wheel.soundEnabled) {
+                toggle.textContent = '🔊 Sound On';
+                toggle.classList.remove('muted');
+                wheel.showNotification('🔊 Sound effects enabled', 'info');
+            } else {
+                toggle.textContent = '🔇 Sound Off';
+                toggle.classList.add('muted');
+                wheel.showNotification('🔇 Sound effects disabled', 'info');
+            }
+        }
+        
+        // Add CSS animations for notifications
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slideIn {
+                from {
+                    transform: translateX(100%);
+                    opacity: 0;
+                }
+                to {
+                    transform: translateX(0);
+                    opacity: 1;
+                }
+            }
+            
+            @keyframes slideOut {
+                from {
+                    transform: translateX(0);
+                    opacity: 1;
+                }
+                to {
+                    transform: translateX(100%);
+                    opacity: 0;
+                }
+            }
+            
+            .notification {
+                box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+                border: 1px solid rgba(255,255,255,0.2);
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+</body>
+</html>
