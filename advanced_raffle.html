@@ -69,7 +69,7 @@
         }
 
         /* Full Screen Game Mode */
-        .fullscreen-mode {
+        .fullscreen-overlay {
             position: fixed !important;
             top: 0;
             left: 0;
@@ -85,6 +85,100 @@
             padding: 20px;
             overflow-y: auto;
             animation: fadeInScale 0.6s ease-out;
+        }
+
+        .fullscreen-overlay .wheel-container,
+        .fullscreen-overlay .game-area {
+            transform: scale(1.4);
+            max-width: none !important;
+            width: auto !important;
+            border: none !important;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3) !important;
+            border-radius: 20px !important;
+            background: rgba(255,255,255,0.1) !important;
+            backdrop-filter: blur(15px) !important;
+            padding: 30px !important;
+            position: relative !important;
+            z-index: 1000 !important;
+        }
+
+        /* Fix text overlapping in fullscreen */
+        .fullscreen-overlay h2 {
+            margin-top: 0 !important;
+            margin-bottom: 30px !important;
+            line-height: 1.2 !important;
+            position: relative !important;
+            z-index: 1001 !important;
+        }
+
+        .fullscreen-overlay .controls {
+            margin-top: 30px !important;
+            margin-bottom: 20px !important;
+            position: relative !important;
+            z-index: 1001 !important;
+        }
+
+        .fullscreen-overlay .result {
+            margin-top: 20px !important;
+            padding: 20px !important;
+            position: relative !important;
+            z-index: 1001 !important;
+            background: rgba(255,255,255,0.1) !important;
+            border-radius: 15px !important;
+            backdrop-filter: blur(10px) !important;
+        }
+
+        .fullscreen-overlay .spin-btn {
+            margin: 20px 0 !important;
+            position: relative !important;
+            z-index: 1001 !important;
+        }
+
+        /* Ensure proper spacing for wheel game */
+        .fullscreen-overlay .wheel-container {
+            gap: 30px !important;
+        }
+
+        .fullscreen-overlay canvas {
+            margin: 20px 0 !important;
+        }
+
+        /* Fix slot machine layout */
+        .fullscreen-overlay .slot-machine {
+            margin: 20px 0 !important;
+        }
+
+        /* Fix lottery balls layout */
+        .fullscreen-overlay .lottery-container {
+            margin: 20px 0 !important;
+        }
+
+        .fullscreen-overlay .lottery-machine {
+            gap: 40px !important;
+        }
+
+        /* Fix card game layout */
+        .fullscreen-overlay .card-table {
+            margin: 20px 0 !important;
+        }
+
+        .fullscreen-overlay h1 {
+            position: absolute;
+            top: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 2.8rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            margin: 0;
+            color: white;
+            z-index: 1001;
+        }
+
+        .fullscreen-overlay h2 {
+            font-size: 2.4rem;
+            margin-bottom: 30px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            color: white;
         }
 
         @keyframes fadeInScale {
@@ -109,7 +203,7 @@
             }
         }
 
-        .fullscreen-mode.closing {
+        .fullscreen-overlay.closing {
             animation: fadeOutScale 0.4s ease-in;
         }
 
@@ -145,26 +239,26 @@
                 font-size: 0.9rem;
             }
             
-            .fullscreen-mode {
+            .fullscreen-overlay {
                 padding: 10px;
             }
             
-            .fullscreen-mode .wheel-container,
-            .fullscreen-mode .game-area {
-                transform: scale(1);
+            .fullscreen-overlay .wheel-container,
+            .fullscreen-overlay .game-area {
+                transform: scale(1.1);
             }
             
-            .fullscreen-mode h1 {
+            .fullscreen-overlay h1 {
                 top: 60px;
                 font-size: 2rem;
             }
             
-            .fullscreen-mode h2 {
+            .fullscreen-overlay h2 {
                 font-size: 1.8rem;
                 margin-bottom: 20px;
             }
             
-            .fullscreen-mode canvas {
+            .fullscreen-overlay canvas {
                 max-width: 90vw !important;
                 max-height: 90vw !important;
             }
@@ -2782,6 +2876,479 @@
                 this.createConfetti();
                 this.saveWinner(winner);
             }
+            
+            // Overlay-specific methods
+            drawWheelOnCanvas(ctx) {
+                if (this.participants.length === 0) return;
+                
+                ctx.clearRect(0, 0, 400, 400);
+                
+                const colors = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7', '#DDA0DD', '#98D8C8', '#F7DC6F'];
+                const segmentAngle = (2 * Math.PI) / this.participants.length;
+                
+                this.participants.forEach((participant, index) => {
+                    const startAngle = index * segmentAngle + this.currentRotation;
+                    
+                    // Draw segment
+                    ctx.beginPath();
+                    ctx.arc(200, 200, 180, startAngle, startAngle + segmentAngle);
+                    ctx.lineTo(200, 200);
+                    ctx.fillStyle = colors[index % colors.length];
+                    ctx.fill();
+                    ctx.strokeStyle = '#fff';
+                    ctx.lineWidth = 2;
+                    ctx.stroke();
+                    
+                    // Draw text
+                    const textAngle = startAngle + segmentAngle / 2;
+                    const textRadius = 180 * 0.7;
+                    const textX = 200 + Math.cos(textAngle) * textRadius;
+                    const textY = 200 + Math.sin(textAngle) * textRadius;
+                    
+                    ctx.save();
+                    ctx.translate(textX, textY);
+                    ctx.rotate(textAngle + Math.PI / 2);
+                    ctx.fillStyle = '#fff';
+                    ctx.font = 'bold 14px Arial';
+                    ctx.textAlign = 'center';
+                    ctx.shadowColor = 'rgba(0,0,0,0.5)';
+                    ctx.shadowBlur = 2;
+                    ctx.fillText(participant.name, 0, 0);
+                    ctx.restore();
+                });
+                
+                // Draw center circle
+                ctx.beginPath();
+                ctx.arc(200, 200, 30, 0, 2 * Math.PI);
+                ctx.fillStyle = '#2c3e50';
+                ctx.fill();
+                ctx.strokeStyle = '#fff';
+                ctx.lineWidth = 3;
+                ctx.stroke();
+                
+                // Draw pointer
+                ctx.beginPath();
+                ctx.moveTo(200, 200 - 180 + 5);
+                ctx.lineTo(200 - 15, 200 - 180 - 25);
+                ctx.lineTo(200 + 15, 200 - 180 - 25);
+                ctx.closePath();
+                ctx.fillStyle = '#e74c3c';
+                ctx.fill();
+                ctx.strokeStyle = '#c0392b';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+            }
+            
+            spinWheelInOverlay(overlay) {
+                if (this.participants.length === 0) {
+                    this.showNotification('Add participants first!', 'error');
+                    return;
+                }
+                
+                if (this.isSpinning) return;
+                
+                this.stopBackgroundMusic();
+                this.isSpinning = true;
+                
+                const spinBtn = overlay.querySelector('[id$="spinBtn"]');
+                if (spinBtn) {
+                    spinBtn.disabled = true;
+                    spinBtn.textContent = '🎯 SPINNING...';
+                }
+                
+                const resultDiv = overlay.querySelector('[id$="result"]');
+                if (resultDiv) {
+                    resultDiv.innerHTML = '<p>🎯 The wheel is spinning...</p>';
+                }
+                
+                this.playSound('spin');
+                
+                const spins = Math.random() * 4 + 5;
+                const finalRotation = spins * 2 * Math.PI;
+                const duration = this.speed;
+                
+                const canvas = overlay.querySelector('canvas');
+                const ctx = canvas.getContext('2d');
+                
+                const startTime = performance.now();
+                const animate = (currentTime) => {
+                    const elapsed = currentTime - startTime;
+                    const progress = Math.min(elapsed / duration, 1);
+                    
+                    const easeOut = 1 - Math.pow(1 - progress, 3);
+                    this.currentRotation = finalRotation * easeOut;
+                    
+                    this.drawWheelOnCanvas(ctx);
+                    
+                    if (progress < 1) {
+                        requestAnimationFrame(animate);
+                    } else {
+                        this.finishSpinInOverlay(overlay);
+                    }
+                };
+                
+                requestAnimationFrame(animate);
+            }
+            
+            finishSpinInOverlay(overlay) {
+                this.isSpinning = false;
+                
+                const spinBtn = overlay.querySelector('[id$="spinBtn"]');
+                if (spinBtn) {
+                    spinBtn.disabled = false;
+                    spinBtn.textContent = '🎯 SPIN THE WHEEL!';
+                }
+                
+                const winner = this.determineWinner();
+                this.playSound('win');
+                
+                const resultDiv = overlay.querySelector('[id$="result"]');
+                if (resultDiv) {
+                    resultDiv.innerHTML = `
+                        <div class="winner-announcement">
+                            🎉 WINNER! 🎉<br>
+                            <strong>${winner.name}</strong><br>
+                            ${winner.email ? `<small>${winner.email}</small>` : ''}
+                        </div>
+                    `;
+                }
+                
+                this.createConfetti();
+                this.saveWinner(winner);
+            }
+            
+            setupSlotMachineInOverlay(overlay) {
+                const reels = overlay.querySelectorAll('.reel-items');
+                reels.forEach(reel => {
+                    reel.innerHTML = '';
+                    
+                    for (let i = 0; i < 8; i++) {
+                        this.participants.forEach(participant => {
+                            const item = document.createElement('div');
+                            item.className = 'reel-item';
+                            item.textContent = participant.name;
+                            reel.appendChild(item);
+                        });
+                    }
+                });
+            }
+            
+            spinSlotsInOverlay(overlay) {
+                if (this.participants.length === 0) {
+                    this.showNotification('Add participants first!', 'error');
+                    return;
+                }
+                
+                if (this.isSpinning) return;
+                
+                this.stopBackgroundMusic();
+                this.isSpinning = true;
+                
+                const slotBtn = overlay.querySelector('[id$="slotBtn"]');
+                if (slotBtn) {
+                    slotBtn.disabled = true;
+                    slotBtn.textContent = '🎰 SPINNING...';
+                }
+                
+                const resultDiv = overlay.querySelector('[id$="slotResult"]');
+                if (resultDiv) {
+                    resultDiv.innerHTML = '<p>🎰 Spinning the slots...</p>';
+                }
+                
+                this.playSound('slotSpin');
+                this.setupSlotMachineInOverlay(overlay);
+                
+                const winnerIndex = Math.floor(Math.random() * this.participants.length);
+                const winner = this.participants[winnerIndex];
+                
+                const reels = overlay.querySelectorAll('.reel-items');
+                const delays = [2000, 2500, 3000];
+                
+                const isMobile = window.innerWidth <= 768;
+                const itemHeight = isMobile ? 40 : 50;
+                
+                reels.forEach((reel, reelIndex) => {
+                    const items = reel.children;
+                    const totalHeight = items.length * itemHeight;
+                    const winnerPosition = Array.from(items).findIndex(item => item.textContent === winner.name);
+                    
+                    let targetPosition;
+                    if (winnerPosition !== -1) {
+                        const setsCount = Math.floor(items.length / this.participants.length);
+                        const middleSet = Math.floor(setsCount / 2);
+                        const adjustedPosition = middleSet * this.participants.length + winnerIndex;
+                        targetPosition = -(adjustedPosition * itemHeight) + (100 - itemHeight / 2);
+                    } else {
+                        targetPosition = -(winnerIndex * itemHeight) + (100 - itemHeight / 2);
+                    }
+                    
+                    const spinDistance = totalHeight * 3 + Math.abs(targetPosition);
+                    
+                    reel.style.transition = 'none';
+                    reel.style.transform = 'translateY(0px)';
+                    
+                    setTimeout(() => {
+                        reel.style.transition = 'transform 3s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
+                        reel.style.transform = `translateY(${targetPosition}px)`;
+                    }, 50);
+                    
+                    setTimeout(() => {
+                        this.playSound('slotStop');
+                        if (reelIndex === 2) {
+                            setTimeout(() => this.finishSlotSpinInOverlay(overlay, winner), 500);
+                        }
+                    }, delays[reelIndex]);
+                });
+            }
+            
+            finishSlotSpinInOverlay(overlay, winner) {
+                this.isSpinning = false;
+                
+                const slotBtn = overlay.querySelector('[id$="slotBtn"]');
+                if (slotBtn) {
+                    slotBtn.disabled = false;
+                    slotBtn.textContent = '🎰 PULL THE LEVER!';
+                }
+                
+                this.playSound('jackpot');
+                
+                const resultDiv = overlay.querySelector('[id$="slotResult"]');
+                if (resultDiv) {
+                    resultDiv.innerHTML = `
+                        <div class="winner-announcement">
+                            🎰 JACKPOT! 🎰<br>
+                            <strong>${winner.name}</strong><br>
+                            ${winner.email ? `<small>${winner.email}</small>` : ''}
+                        </div>
+                    `;
+                }
+                
+                this.createConfetti();
+                this.saveWinner(winner);
+            }
+            
+            setupLotteryBallsInOverlay(overlay) {
+                const ballsContainer = overlay.querySelector('[id$="lotteryBalls"]');
+                if (!ballsContainer) return;
+                
+                ballsContainer.innerHTML = '';
+                
+                const colors = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7', '#DDA0DD', '#98D8C8', '#F7DC6F'];
+                
+                this.participants.forEach((participant, index) => {
+                    const ball = document.createElement('div');
+                    ball.className = 'lottery-ball';
+                    ball.textContent = participant.name;
+                    ball.style.background = `linear-gradient(145deg, ${colors[index % colors.length]}, ${this.darkenColor(colors[index % colors.length], 20)})`;
+                    ball.style.animationDelay = `${index * 0.1}s`;
+                    ballsContainer.appendChild(ball);
+                });
+            }
+            
+            drawLotteryBallInOverlay(overlay) {
+                if (this.participants.length === 0) {
+                    this.showNotification('Add participants first!', 'error');
+                    return;
+                }
+                
+                this.stopBackgroundMusic();
+                
+                const balls = overlay.querySelectorAll('.lottery-ball');
+                const lotteryBtn = overlay.querySelector('[id$="lotteryBtn"]');
+                const resultDiv = overlay.querySelector('[id$="lotteryResult"]');
+                const selectedBallDiv = overlay.querySelector('[id$="selectedBall"]');
+                
+                if (lotteryBtn) {
+                    lotteryBtn.disabled = true;
+                    lotteryBtn.textContent = '🔮 DRAWING...';
+                }
+                
+                if (resultDiv) {
+                    resultDiv.innerHTML = '<p>🔮 The mystical balls are stirring...</p>';
+                }
+                
+                this.playSound('ballMix');
+                
+                balls.forEach(ball => {
+                    ball.style.animation = 'ballShuffle 1.5s ease-in-out infinite';
+                });
+                
+                setTimeout(() => {
+                    const winnerIndex = Math.floor(Math.random() * this.participants.length);
+                    const winner = this.participants[winnerIndex];
+                    const winnerBall = balls[winnerIndex];
+                    
+                    balls.forEach((ball, index) => {
+                        if (index !== winnerIndex) {
+                            ball.style.opacity = '0.3';
+                            ball.style.animation = 'none';
+                        }
+                    });
+                    
+                    if (winnerBall && selectedBallDiv) {
+                        winnerBall.style.animation = 'ballReveal 2s ease-out';
+                        
+                        const spotlight = document.createElement('div');
+                        spotlight.style.cssText = `
+                            position: absolute;
+                            top: 50%;
+                            left: 50%;
+                            width: 200px;
+                            height: 200px;
+                            background: radial-gradient(circle, rgba(255,255,255,0.3) 0%, transparent 70%);
+                            border-radius: 50%;
+                            transform: translate(-50%, -50%);
+                            pointer-events: none;
+                            animation: spotlightPulse 1s ease-in-out infinite;
+                            z-index: 1000;
+                        `;
+                        
+                        winnerBall.parentElement.style.position = 'relative';
+                        winnerBall.parentElement.appendChild(spotlight);
+                        
+                        setTimeout(() => {
+                            selectedBallDiv.style.display = 'flex';
+                            selectedBallDiv.textContent = winner.name;
+                            selectedBallDiv.style.background = winnerBall.style.background;
+                            
+                            this.playSound('ballDraw');
+                            this.finishLotteryDrawInOverlay(overlay, winner);
+                            
+                            setTimeout(() => spotlight.remove(), 3000);
+                        }, 2000);
+                    }
+                }, 1500);
+            }
+            
+            finishLotteryDrawInOverlay(overlay, winner) {
+                const lotteryBtn = overlay.querySelector('[id$="lotteryBtn"]');
+                const resultDiv = overlay.querySelector('[id$="lotteryResult"]');
+                
+                if (lotteryBtn) {
+                    lotteryBtn.disabled = false;
+                    lotteryBtn.textContent = '🔮 DRAW A BALL!';
+                }
+                
+                if (resultDiv) {
+                    resultDiv.innerHTML = `
+                        <div class="winner-announcement">
+                            🔮 The Crystal Ball Reveals! 🔮<br>
+                            <strong>${winner.name}</strong><br>
+                            ${winner.email ? `<small>${winner.email}</small>` : ''}
+                        </div>
+                    `;
+                }
+                
+                this.createConfetti();
+                this.saveWinner(winner);
+            }
+            
+            setupCardDeckInOverlay(overlay) {
+                const deckContainer = overlay.querySelector('[id$="cardDeck"]');
+                if (!deckContainer) return;
+                
+                deckContainer.innerHTML = '';
+                
+                this.participants.forEach((participant, index) => {
+                    const card = document.createElement('div');
+                    card.className = 'card';
+                    card.innerHTML = `
+                        <div class="card-back">🎴</div>
+                        <div class="card-front">${participant.name}</div>
+                    `;
+                    card.style.zIndex = this.participants.length - index;
+                    deckContainer.appendChild(card);
+                });
+            }
+            
+            drawCardInOverlay(overlay) {
+                if (this.participants.length === 0) {
+                    this.showNotification('Add participants first!', 'error');
+                    return;
+                }
+                
+                if (this.isSpinning) return;
+                
+                this.stopBackgroundMusic();
+                this.isSpinning = true;
+                
+                const cardBtn = overlay.querySelector('[id$="cardBtn"]');
+                const resultDiv = overlay.querySelector('[id$="cardResult"]');
+                const selectedCardDiv = overlay.querySelector('[id$="selectedCard"]');
+                
+                if (cardBtn) {
+                    cardBtn.disabled = true;
+                    cardBtn.textContent = '🎴 SHUFFLING...';
+                }
+                
+                if (resultDiv) {
+                    resultDiv.innerHTML = '<p>🎴 Shuffling the deck...</p>';
+                }
+                
+                this.playSound('cardShuffle');
+                
+                const winnerIndex = Math.floor(Math.random() * this.participants.length);
+                const winner = this.participants[winnerIndex];
+                
+                const cards = overlay.querySelectorAll('.card');
+                
+                cards.forEach((card, index) => {
+                    setTimeout(() => {
+                        if (index === winnerIndex) {
+                            card.style.transform = 'translateY(-50px) scale(1.1)';
+                            card.style.zIndex = '1000';
+                            card.classList.add('flipped');
+                            
+                            if (selectedCardDiv) {
+                                selectedCardDiv.innerHTML = `
+                                    <div class="card flipped">
+                                        <div class="card-back">🎴</div>
+                                        <div class="card-front">${winner.name}</div>
+                                    </div>
+                                `;
+                            }
+                            
+                            setTimeout(() => {
+                                this.finishCardDrawInOverlay(overlay, winner);
+                            }, 1000);
+                        } else {
+                            const angle = (Math.random() - 0.5) * 60;
+                            const distance = Math.random() * 200 + 100;
+                            const x = Math.cos(angle) * distance;
+                            const y = Math.sin(angle) * distance;
+                            card.style.transform = `translate(${x}px, ${y}px) rotate(${angle}deg) scale(0.5)`;
+                            card.style.opacity = '0';
+                        }
+                    }, index * 50);
+                });
+            }
+            
+            finishCardDrawInOverlay(overlay, winner) {
+                this.isSpinning = false;
+                
+                const cardBtn = overlay.querySelector('[id$="cardBtn"]');
+                const resultDiv = overlay.querySelector('[id$="cardResult"]');
+                
+                if (cardBtn) {
+                    cardBtn.disabled = false;
+                    cardBtn.textContent = '🎴 DRAW A CARD!';
+                }
+                
+                this.playSound('cardWin');
+                
+                if (resultDiv) {
+                    resultDiv.innerHTML = `
+                        <div class="winner-announcement">
+                            🎴 The Cards Have Decided! 🎴<br>
+                            <strong>${winner.name}</strong><br>
+                            ${winner.email ? `<small>${winner.email}</small>` : ''}
+                        </div>
+                    `;
+                }
+                
+                this.createConfetti();
+                this.saveWinner(winner);
+            }
         }
         
         // Global functions for buttons
@@ -2805,25 +3372,62 @@
         
         // Game switching functions
         function openGame(gameType) {
-            // Hide all game areas
-            document.getElementById('wheelContainer').style.display = 'none';
-            document.getElementById('slotGame').style.display = 'none';
-            document.getElementById('lotteryGame').style.display = 'none';
-            document.getElementById('cardGame').style.display = 'none';
-            document.getElementById('gameSelectionPrompt').style.display = 'none';
+            // Create fullscreen overlay
+            const overlay = document.createElement('div');
+            overlay.className = 'fullscreen-overlay';
+            overlay.id = 'fullscreenOverlay';
             
-            // Hide sidebar and main content for fullscreen effect
-            const sidebar = document.querySelector('.sidebar');
-            const mainContent = document.querySelector('.main-content');
-            sidebar.style.display = 'none';
-            
-            // Show selected game
+            // Clone the selected game content
+            let gameContent;
             switch(gameType) {
                 case 'wheel':
-                    document.getElementById('wheelContainer').style.display = 'block';
-                    document.getElementById('wheelContainer').classList.add('fullscreen-mode');
-                    if (wheel.selectedGameType === 'wheel') {
-                        wheel.drawWheel();
+                    gameContent = document.getElementById('wheelContainer').cloneNode(true);
+                    gameContent.style.display = 'block';
+                    // Update IDs to avoid conflicts
+                    updateElementIds(gameContent, 'fs-');
+                    break;
+                case 'slot':
+                    gameContent = document.getElementById('slotGame').cloneNode(true);
+                    gameContent.style.display = 'block';
+                    updateElementIds(gameContent, 'fs-');
+                    break;
+                case 'lottery':
+                    gameContent = document.getElementById('lotteryGame').cloneNode(true);
+                    gameContent.style.display = 'block';
+                    updateElementIds(gameContent, 'fs-');
+                    break;
+                case 'cards':
+                    gameContent = document.getElementById('cardGame').cloneNode(true);
+                    gameContent.style.display = 'block';
+                    updateElementIds(gameContent, 'fs-');
+                    break;
+            }
+            
+            // Add game content to overlay
+            overlay.appendChild(gameContent);
+            
+            // Add to body
+            document.body.appendChild(overlay);
+            
+            // Re-bind events for the cloned content
+            rebindGameEvents(gameType, overlay);
+            
+            // Initialize game content
+            switch(gameType) {
+                case 'wheel':
+                    if (wheel.participants.length > 0) {
+                        // Re-initialize canvas in the overlay
+                        const canvas = overlay.querySelector('canvas');
+                        if (canvas) {
+                            canvas.width = 400;
+                            canvas.height = 400;
+                            wheel.overlayCanvas = canvas;
+                            wheel.overlayCtx = canvas.getContext('2d');
+                            wheel.centerX = 200;
+                            wheel.centerY = 200;
+                            wheel.radius = 180;
+                            wheel.drawWheelOnCanvas(wheel.overlayCtx);
+                        }
                     }
                     // Start wheel background music
                     if (wheel.soundEnabled) {
@@ -2831,10 +3435,8 @@
                     }
                     break;
                 case 'slot':
-                    document.getElementById('slotGame').style.display = 'block';
-                    document.getElementById('slotGame').classList.add('fullscreen-mode');
                     if (wheel.participants.length > 0) {
-                        wheel.setupSlotMachine();
+                        wheel.setupSlotMachineInOverlay(overlay);
                     }
                     // Start slot machine background music
                     if (wheel.soundEnabled) {
@@ -2842,10 +3444,8 @@
                     }
                     break;
                 case 'lottery':
-                    document.getElementById('lotteryGame').style.display = 'block';
-                    document.getElementById('lotteryGame').classList.add('fullscreen-mode');
                     if (wheel.participants.length > 0) {
-                        wheel.setupLotteryBalls();
+                        wheel.setupLotteryBallsInOverlay(overlay);
                     }
                     // Start lottery background music
                     if (wheel.soundEnabled) {
@@ -2853,10 +3453,8 @@
                     }
                     break;
                 case 'cards':
-                    document.getElementById('cardGame').style.display = 'block';
-                    document.getElementById('cardGame').classList.add('fullscreen-mode');
                     if (wheel.participants.length > 0) {
-                        wheel.setupCardDeck();
+                        wheel.setupCardDeckInOverlay(overlay);
                     }
                     // Start card game background music
                     if (wheel.soundEnabled) {
@@ -2870,6 +3468,67 @@
             
             // Add game title to fullscreen
             addFullscreenTitle(gameType);
+        }
+        
+        function updateElementIds(element, prefix) {
+            // Update ID of the element itself
+            if (element.id) {
+                element.id = prefix + element.id;
+            }
+            
+            // Update IDs of all child elements
+            const elementsWithIds = element.querySelectorAll('[id]');
+            elementsWithIds.forEach(el => {
+                el.id = prefix + el.id;
+            });
+        }
+        
+        function rebindGameEvents(gameType, overlay) {
+            // Re-bind click events for the cloned game content
+            switch(gameType) {
+                case 'wheel':
+                    const spinBtn = overlay.querySelector('[id$="spinBtn"]');
+                    if (spinBtn) {
+                        spinBtn.onclick = () => wheel.spinWheelInOverlay(overlay);
+                    }
+                    
+                    const speedBtns = overlay.querySelectorAll('.speed-btn');
+                    speedBtns.forEach(btn => {
+                        btn.onclick = (e) => {
+                            speedBtns.forEach(b => b.classList.remove('active'));
+                            e.target.classList.add('active');
+                            const speed = e.target.textContent.toLowerCase();
+                            wheel.setSpeed(speed);
+                        };
+                    });
+                    break;
+                    
+                case 'slot':
+                    const slotBtn = overlay.querySelector('[id$="slotBtn"]');
+                    if (slotBtn) {
+                        slotBtn.onclick = () => wheel.spinSlotsInOverlay(overlay);
+                    }
+                    
+                    const slotLever = overlay.querySelector('.slot-lever');
+                    if (slotLever) {
+                        slotLever.onclick = () => wheel.spinSlotsInOverlay(overlay);
+                    }
+                    break;
+                    
+                case 'lottery':
+                    const lotteryBtn = overlay.querySelector('[id$="lotteryBtn"]');
+                    if (lotteryBtn) {
+                        lotteryBtn.onclick = () => wheel.drawLotteryBallInOverlay(overlay);
+                    }
+                    break;
+                    
+                case 'cards':
+                    const cardBtn = overlay.querySelector('[id$="cardBtn"]');
+                    if (cardBtn) {
+                        cardBtn.onclick = () => wheel.drawCardInOverlay(overlay);
+                    }
+                    break;
+            }
         }
         
         
@@ -2925,59 +3584,50 @@
             // Stop any background music
             wheel.stopBackgroundMusic();
             
-            // Add closing animation to fullscreen elements
-            const fullscreenElements = document.querySelectorAll('.fullscreen-mode');
-            fullscreenElements.forEach(element => {
-                element.classList.add('closing');
-            });
+            // Get fullscreen overlay
+            const overlay = document.getElementById('fullscreenOverlay');
+            if (overlay) {
+                // Add closing animation
+                overlay.classList.add('closing');
+                
+                // Wait for animation to complete before removing
+                setTimeout(() => {
+                    overlay.remove();
+                }, 400);
+            }
             
-            // Wait for animation to complete before hiding
-            setTimeout(() => {
-                // Remove fullscreen classes
-                document.getElementById('wheelContainer').classList.remove('fullscreen-mode', 'closing');
-                document.getElementById('slotGame').classList.remove('fullscreen-mode', 'closing');
-                document.getElementById('lotteryGame').classList.remove('fullscreen-mode', 'closing');
-                document.getElementById('cardGame').classList.remove('fullscreen-mode', 'closing');
-                
-                // Hide all games
-                document.getElementById('wheelContainer').style.display = 'none';
-                document.getElementById('slotGame').style.display = 'none';
-                document.getElementById('lotteryGame').style.display = 'none';
-                document.getElementById('cardGame').style.display = 'none';
-                
-                // Show game selection prompt
-                document.getElementById('gameSelectionPrompt').style.display = 'block';
-                
-                // Show sidebar and main content again
-                const sidebar = document.querySelector('.sidebar');
-                sidebar.style.display = 'block';
-                
-                // Show game selector on sidebar again
-                const gameSelector = document.getElementById('gameSelector');
-                gameSelector.style.display = 'block';
-                
-                // Hide participants section
-                document.getElementById('participantsSection').style.display = 'none';
-                
-                // Reset selected game type
-                wheel.selectedGameType = null;
-                
-                // Remove fixed back button and fullscreen title
-                const existingBtn = document.querySelector('.fixed-back-btn');
-                if (existingBtn) {
-                    existingBtn.style.animation = 'fadeOutScale 0.3s ease-in';
-                    setTimeout(() => existingBtn.remove(), 300);
-                }
-                
-                const existingTitle = document.querySelector('.fullscreen-title');
-                if (existingTitle) {
-                    existingTitle.style.animation = 'fadeOutScale 0.3s ease-in';
-                    setTimeout(() => existingTitle.remove(), 300);
-                }
-                
-                // Show notification
-                wheel.showNotification('🎮 Choose a new game type to continue', 'info');
-            }, 400);
+            // Show game selector on sidebar again
+            const gameSelector = document.getElementById('gameSelector');
+            gameSelector.style.display = 'block';
+            
+            // Show game selection prompt
+            document.getElementById('gameSelectionPrompt').style.display = 'block';
+            
+            // Hide participants section
+            document.getElementById('participantsSection').style.display = 'none';
+            
+            // Reset selected game type
+            wheel.selectedGameType = null;
+            
+            // Remove fixed back button and fullscreen title with animation
+            const existingBtn = document.querySelector('.fixed-back-btn');
+            if (existingBtn) {
+                existingBtn.style.animation = 'fadeOutScale 0.3s ease-in';
+                setTimeout(() => existingBtn.remove(), 300);
+            }
+            
+            const existingTitle = document.querySelector('.fullscreen-title');
+            if (existingTitle) {
+                existingTitle.style.animation = 'fadeOutScale 0.3s ease-in';
+                setTimeout(() => existingTitle.remove(), 300);
+            }
+            
+            // Reset canvas reference to original
+            wheel.canvas = document.getElementById('wheelCanvas');
+            wheel.ctx = wheel.canvas.getContext('2d');
+            
+            // Show notification
+            wheel.showNotification('🎮 Choose a new game type to continue', 'info');
         }
         
         // Game-specific functions
