@@ -102,6 +102,7 @@
             z-index: 1000 !important;
         }
 
+
         /* Fix text overlapping in fullscreen */
         .fullscreen-overlay h2 {
             margin-top: 0 !important;
@@ -3541,7 +3542,15 @@
             const backBtn = document.createElement('button');
             backBtn.className = 'fixed-back-btn';
             backBtn.innerHTML = '← Back to Selection';
-            backBtn.onclick = () => showGameSelection();
+            backBtn.onclick = function() {
+                // Remove overlay if present
+                const overlay = document.getElementById('fullscreenOverlay');
+                if (overlay) {
+                    overlay.classList.add('closing');
+                    setTimeout(() => overlay.remove(), 400);
+                }
+                showGameSelection();
+            };
             backBtn.style.display = 'block';
             
             // Add to body so it's always on top
